@@ -25,25 +25,7 @@ function dump {
 }
 
 function compress {
-    pigz
-}
-
-function aws_upload {
-    declare -r EXPECTED_SIZE="$1"
-
-    # mimic bucket setup from Spilo
-    # to keep logical backups at the same path as WAL
-    # NB: $LOGICAL_BACKUP_S3_BUCKET_SCOPE_SUFFIX already contains the leading "/" when set by the Postgres Operator
-    PATH_TO_BACKUP=s3://$LOGICAL_BACKUP_S3_BUCKET"/spilo/"$SCOPE$LOGICAL_BACKUP_S3_BUCKET_SCOPE_SUFFIX"/logical_backups/"$(date +%s).sql.gz
-
-    args=()
-
-    [[ ! -z "$EXPECTED_SIZE" ]] && args+=("--expected-size=$EXPECTED_SIZE")
-    [[ ! -z "$LOGICAL_BACKUP_S3_ENDPOINT" ]] && args+=("--endpoint-url=$LOGICAL_BACKUP_S3_ENDPOINT")
-    [[ ! -z "$LOGICAL_BACKUP_S3_REGION" ]] && args+=("--region=$LOGICAL_BACKUP_S3_REGION")
-    [[ ! -z "$LOGICAL_BACKUP_S3_SSE" ]] && args+=("--sse=$LOGICAL_BACKUP_S3_SSE")
-
-    aws s3 cp - "$PATH_TO_BACKUP" "${args[@]//\'/}"
+    pigz --best
 }
 
 function get_pods {
@@ -93,7 +75,10 @@ for search in "${search_strategy[@]}"; do
 done
 
 set -x
-dump | compress | aws_upload $(($(estimate_size) / DUMP_SIZE_COEFF))
+# use $LOGICAL_BACKUP_S3_BUCKET to refer to the network folder to leave this backup.
+PATH_TO_BACKUP=$LOGICAL_BACKUP_S3_BUCKET"/logical_backups/"$(date +%s).sql.gz
+
+dump | compress >"$PATH_TO_BACKUP"
 [[ ${PIPESTATUS[0]} != 0 || ${PIPESTATUS[1]} != 0 || ${PIPESTATUS[2]} != 0 ]] && (( ERRORCOUNT += 1 ))
 set +x
 
