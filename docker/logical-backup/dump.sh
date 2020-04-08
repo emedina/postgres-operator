@@ -10,7 +10,7 @@ ERRORCOUNT=0
 
 function dump {
     # settings are taken from the environment
-    "$PGPASSWORD" "$PG_BIN"/pg_dump -U "$PGUSER" --no-owner -h "$PGHOST"
+    PGPASSWORD="$PGPASSWORD" pg_dump -U "$PGUSER" --no-owner -h "$PGHOST"
 }
 
 function compress {
