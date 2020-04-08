@@ -1,0 +1,41 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    run: pgdump
+  name: pgdump
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      template:
+          labels:
+            run: pgdump
+        spec:
+          containers:
+            - env:
+                - name: PGPASSWORD
+                  value: KkQXoT3NGmUuwWEkQnFVVeXapzMmfi5JPX3yJnqBqlJqE41ApcphGBEKYnPyRJi6
+                - name: PGUSER
+                  value: user1
+                - name: PGHOST
+                  value: acid-cluster
+                - name: PATH_TO_BACKUP
+                  value: .
+                - name: PGDB
+                  value: db1
+              image: emedinam/postgres-operator-logical-backup-epo:0.1
+              imagePullPolicy: IfNotPresent
+              name: pgdump
+              resources: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: OnFailure
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+  schedule: '* * * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: false
