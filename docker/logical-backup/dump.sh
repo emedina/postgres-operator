@@ -21,5 +21,5 @@ set -x
 # use $LOGICAL_BACKUP_S3_BUCKET to refer to the network folder to leave this backup.
 PATH_TO_BACKUP=$PATH_TO_BACKUP/$(date +%s).sql.gz
 
-dump | compress >"$PATH_TO_BACKUP" | ls -lah $PATH_TO_BACKUP; exit $?
+dump | compress >"$PATH_TO_BACKUP" | ls -lah "$PATH_TO_BACKUP"; exit $?
 set +x
